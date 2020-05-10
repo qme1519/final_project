@@ -1,0 +1,253 @@
+{% extends "base.html" %}
+{% load static %}
+{% block page_content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.6.0/Chart.min.js"></script>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <title>Result</title>
+  <script type="text/javascript">
+    var data = {{arrayPositions}}
+    var index = data.length;
+
+    function ChangeChart(newIndex) {
+      if ('{{algorithm.purpose}}' == 'Search') {
+        if (newIndex < data.length) {
+          index = newIndex;
+          newData = data[index];
+          highlight = newData[0];
+          for(var i = 0; i < unsortedChart.data.datasets[0].data.length; i++){
+            unsortedChart.data.datasets[0].backgroundColor[i] = "red";
+          }
+          unsortedChart.data.datasets[0].backgroundColor[highlight] = "yellow";
+          unsortedChart.update(200);
+        }
+        else {
+          alert("No more steps")
+        }
+      }
+      else {
+          if (newIndex < data.length && newIndex >= 0) {
+            index = newIndex;
+            newData = data[index];
+            highlight = newData[0];
+            columns = newData[1];
+            for(var i = 0; i < columns.length; i++){
+              sortedChart.data.datasets[0].backgroundColor[i] = "blue";
+            }
+            sortedChart.data.datasets[0].backgroundColor[highlight] = "yellow";
+            sortedChart.data.datasets[0].data = columns;
+            sortedChart.update(200);
+        }
+        else {
+          alert("No more steps")
+        }
+      }
+    }
+    async function delay(delayInms) {
+      return new Promise(resolve  => {
+      setTimeout(() => {
+      resolve(2);
+    }, delayInms);
+    });
+  }
+    async function Animate() {
+      for(var i = index; i < data.length; i++){
+        let delayres = await delay(delayTime);
+        ChangeChart(i)
+        }
+    }
+  </script>
+</head>
+<h1>Success</h1>
+<p>Before the algorithm:</p>
+{{data}}
+<hr>
+{%if algorithm.purpose == 'Sort' %}<p>After the algorithm:</p>
+{{sorted}}
+{%else%}<p>Result:</p>
+{{position}}
+{%endif%}
+{{visual}}
+<hr>
+<p>Number of operations:</p>
+{{numOps}}
+{%if algorithm.title != 'Binary tree search'%}
+<div class="container">
+  <canvas id="unsorted"></canvas>
+</div>
+{%endif%}
+<br>
+{%if algorithm.title == 'Binary tree search'%}
+<p style='font-size:30px'>No visual representation of a binary tree available</p>
+{%else%}
+<button type="submit" class="btn btn-primary" onclick= "ChangeChart(0);">Go to start</button>
+<button type="submit" class="btn btn-primary" onclick= "ChangeChart(index-1);">Previous step</button>
+<button type="submit" class="btn btn-primary" onclick= "ChangeChart(index+1);">Next step</button>
+<button type="submit" class="btn btn-primary" onclick= "ChangeChart(data.length-1);">Go to end</button>
+<button type="submit" class="btn btn-primary" onclick= "Animate();">Animate</button>
+<p>Adjust the speed of the animation with the slider bellow</p>
+<div class="slidecontainer">
+  <input type="range" min="10" max="1000" value="500" class="slider" id="myRange">
+</div>
+
+{%endif%}
+<div class="container">
+  <canvas id="sorted"></canvas>
+</div>
+
+<script>
+  var unsorted = document.getElementById('unsorted').getContext('2d');
+
+  // Global Options
+  Chart.defaults.global.defaultFontFamily = 'Lato';
+  Chart.defaults.global.defaultFontSize = 18;
+  Chart.defaults.global.defaultFontColor = '#777';
+
+  let unsortedChart = new Chart(unsorted, {
+    type:'bar', // bar, horizontalBar, pie, line, doughnut, radar, polarArea
+    data:{
+      labels:{{indexes}},
+      datasets:[{
+        label:'Array element',
+        data:{{data}},
+        backgroundColor:[],
+
+        borderWidth:1,
+        borderColor:'#777',
+        hoverBorderWidth:3,
+        hoverBorderColor:'#000'
+      }]
+    },
+    options:{
+      title:{
+        display:true,
+        {%if algorithm.purpose == 'Search'%}
+        text:'Array representation',
+        {%else%}
+        text:'Unsorted array representation',
+        {%endif%}
+        fontSize:25
+      },
+      legend:{
+        display:true,
+        position:'right',
+        labels:{
+          fontColor:'#000'
+        }
+      },
+      layout:{
+        padding:{
+          left:50,
+          right:0,
+          bottom:0,
+          top:0
+        }
+      },
+      tooltips:{
+        enabled:true
+      },
+      scales: {
+              xAxes: [{
+                scaleLabel: {
+                  display: true,
+                  labelString: 'Index in array'
+                }
+              }],
+              yAxes: [{
+                ticks: {
+                  beginAtZero: true
+                }
+              }]
+            }
+    }
+  });
+  for(var i = 0; i < {{data}}.length; i++){
+  unsortedChart.data.datasets[0].backgroundColor[i] = "red";
+  }
+  if (!isNaN('{{position}}')) {
+    unsortedChart.data.datasets[0].backgroundColor[{{position}}] = "yellow";
+  }
+  unsortedChart.update();
+</script>
+<script>
+  if('{{algorithm.purpose}}' == 'Sort'){
+  let sorted = document.getElementById('sorted').getContext('2d');
+  var sortedChart = new Chart(sorted, {
+    type:'bar', // bar, horizontalBar, pie, line, doughnut, radar, polarArea
+    data:{
+      labels:{{indexes}},
+      datasets:[{
+        label:'Array element',
+        {%if sorted != ''%}
+        data:{{sorted}},
+        {%else%}
+        data:[],
+        {%endif%}
+        backgroundColor:[],
+
+        borderWidth:1,
+        borderColor:'#777',
+        hoverBorderWidth:3,
+        hoverBorderColor:'#000'
+      }]
+    },
+    options:{
+      title:{
+        display:true,
+        text:'Sorted array representation',
+        fontSize:25
+      },
+      legend:{
+        display:true,
+        position:'right',
+        labels:{
+          fontColor:'#000'
+        }
+      },
+      layout:{
+        padding:{
+          left:50,
+          right:0,
+          bottom:0,
+          top:0
+        }
+      },
+      tooltips:{
+        enabled:true
+      },
+      scales: {
+              xAxes: [{
+                scaleLabel: {
+                  display: true,
+                  labelString: 'Index in array'
+                }
+              }],
+              yAxes: [{
+                ticks: {
+                  beginAtZero: true
+                }
+              }]
+            }
+    }
+  });
+  for(var i = 0; i < sortedChart.data.datasets[0].data.length; i++){
+    sortedChart.data.datasets[0].backgroundColor[i] = "blue";
+  }
+  sortedChart.update();
+}
+</script>
+<script>
+  var slider = document.getElementById("myRange")
+  var delayTime = 1000 - slider.value
+  slider.oninput = function() {
+    delayTime = 1000 - this.value
+    console.log(delayTime)
+  }
+</script>
+</html>
+{% endblock %}

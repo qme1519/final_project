@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block page_content %}
+<script type="text/javascript">
+    function ShowHideForms() {
+        var fileCheck = document.getElementById("id_choice_0");
+        var file = document.getElementById("file");
+        file.style.display = fileCheck.checked ? "block" : "none";
+        var inputCheck = document.getElementById("id_choice_1");
+        var randomCheck = document.getElementById("id_choice_2");
+        var inputArray = document.getElementById("description");
+        if (randomCheck.checked || inputCheck.checked) {
+          inputArray.style.display = "block";
+        }
+        else {
+          inputArray.style.display = "none";
+        }
+    }
+</script>
+<style>
+  fieldset.inlineLabels ul {list-style:none}
+</style>
+<h1>{{ algorithm.title }}</h1>
+<div class="row">
+    <div class="col-md-4">
+        <img src="{% static algorithm.image %}" alt="" width="100%">
+    </div>
+    <div class="col-md-4">
+        <h5>About the algorithm:</h5>
+        <p>{{ algorithm.description }}</p>
+        <br>
+        <small>Categories:&nbsp;
+        {% for category in algorithm.categories.all %}
+        <a href="{% url 'algorithms_category' category.name %}">
+            {{ category.name }}
+        </a>&nbsp;
+        {% endfor %}
+        <hr>
+        Best case: {{algorithm.bestCase}}
+        <hr>
+        Worst case: {{algorithm.worstCase}}
+        <hr>
+        </small>
+    </div>
+    <div class="col-md-4">
+      <h3>Try the algorithm:</h3>
+      <form action="/{{ algorithm.pk }}/" method="post" enctype="multipart/form-data")>
+          {% csrf_token %}
+          <div class="form-group">
+              {{ form.choice }}
+          </div>
+          <div class="form-group" id="description" style="display: none">
+              {{ form.description }}
+          </div>
+          <div class="form-group" id="file" style="display: none">
+              {{ form.file }}
+          </div>
+          {%if algorithm.purpose == 'Search' %}
+          <div class="form-group" id="search" >
+              {{ form.target }}
+          </div>
+          {%endif%}
+          <button type="submit" class="btn btn-primary">Submit</button>
+      </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load static %}
+{% block page_content %}
+<head>
+  <title>Category: {{category}}</title>
+</head>
+<h1>{{ category | title }}</h1>
+<div class="row">
+{% for algorithm in algorithms %}
+    <div class="col-md-4">
+        <div class="card mb-2">
+            <img class="card-img-top" src="{% static algorithm.image %}">
+            <div class="card-body">
+                <h5 class="card-title">{{ algorithm.title }}</h5>
+                <small>
+                    Categories:&nbsp;
+                    {% for category in algorithm.categories.all %}
+                    <a href="{% url 'algorithms_category' category.name %}">
+                        {{ category.name }}
+                    </a>&nbsp;
+                    {% endfor %}
+                </small>
+                <p class="card-text">{{ algorithm.description }}</p>
+                <a href="{% url 'algorithms_detail' algorithm.pk %}"
+                   class="btn btn-primary">
+                    Try it out!
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
